@@ -1,7 +1,7 @@
 ---
 import '../styles/global.css';
 import { Font } from 'astro:assets';
-import { SITE_TITLE } from '../consts';
+import { PERSON, SITE_TITLE } from '../consts';
 
 interface Props {
 	title: string;
@@ -28,6 +28,7 @@ const fullTitle = title === SITE_TITLE ? title : `${title} · ${SITE_TITLE}`;
 
 <title>{fullTitle}</title>
 <meta name="description" content={description} />
+<meta name="author" content={PERSON.fullName} />
 <meta property="og:type" content="website" />
 <meta property="og:url" content={canonicalURL} />
 <meta property="og:title" content={fullTitle} />
