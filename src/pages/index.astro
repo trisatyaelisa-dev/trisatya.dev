@@ -1,0 +1,410 @@
+---
+import { getCollection } from 'astro:content';
+import Pipeline from '../components/Pipeline.astro';
+import ServiceCard from '../components/ServiceCard.astro';
+import Terminal from '../components/Terminal.astro';
+import { LINKS, PERSON, SERVICES, SITE_DESCRIPTION, SITE_TITLE, TOOLBOX } from '../consts';
+import Base from '../layouts/Base.astro';
+
+const posts = (await getCollection('blog'))
+	.sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf())
+	.slice(0, 3);
+const fmt = (d: Date) => d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+---
+
+<Base title={SITE_TITLE} description={SITE_DESCRIPTION}>
+	<!-- HERO -->
+	<section class="hero wrap">
+		<div class="hero-copy rise">
+			<span class="eyebrow">{PERSON.role} · {PERSON.location}</span>
+			<h1>
+				Hi, I’m <span class="name">{PERSON.name}</span>.<br />
+				I run my own<br /><span class="outline">small cloud.</span>
+			</h1>
+			<p class="lede">{PERSON.tagline}</p>
+			<div class="cta">
+				<a class="btn primary" href="#stack">Explore the stack</a>
+				<a class="btn" href="/blog/">Read the build log</a>
+			</div>
+			<p class="live mono" id="live-summary" data-state="unknown">
+				<span class="dot"></span><span class="txt">connecting to the VPS…</span>
+			</p>
+		</div>
+		<div class="hero-term rise" style="animation-delay:.15s">
+			<Terminal />
+		</div>
+	</section>
+
+	<!-- LIVE HOST STRIP -->
+	<section class="wrap strip rise" aria-label="Live host status" style="animation-delay:.3s">
+		<div class="cell"><span class="k mono">uptime</span><span class="v" data-host="uptime">—</span></div>
+		<div class="cell"><span class="k mono">memory</span><span class="v" data-host="mem">—</span></div>
+		<div class="cell"><span class="k mono">containers</span><span class="v" data-host="containers">—</span></div>
+		<div class="cell"><span class="k mono">load (1m)</span><span class="v" data-host="load">—</span></div>
+		<div class="cell"><span class="k mono">last check</span><span class="v" data-host="checked">—</span></div>
+	</section>
+
+	<!-- STACK -->
+	<section id="stack" class="section wrap">
+		<div data-reveal>
+			<span class="eyebrow">Live infrastructure</span>
+			<h2 class="section-title">Three services, one VPS, one login.</h2>
+			<p class="lede">
+				Everything below runs on a single 2&nbsp;vCPU machine I set up from scratch. The status dots are real: the VPS
+				checks each service’s health endpoint every minute.
+			</p>
+		</div>
+		<div class="cards">
+			{SERVICES.map((s, i) => <ServiceCard {...s} index={i} />)}
+		</div>
+		<p class="note mono">Each service sits behind Keycloak, so the links open a sign-in page.</p>
+	</section>
+
+	<!-- PIPELINE -->
+	<section id="pipeline" class="section wrap">
+		<div data-reveal>
+			<span class="eyebrow">How it ships</span>
+			<h2 class="section-title">From git push to production, with an undo button.</h2>
+			<p class="lede">
+				Every repo deploys itself the same way. A broken change never stays live: if the health check fails, the
+				server goes back to the last good commit on its own.
+			</p>
+		</div>
+		<Pipeline />
+	</section>
+
+	<!-- WRITING -->
+	<section id="writing" class="section wrap">
+		<div class="head-row" data-reveal>
+			<div>
+				<span class="eyebrow">Writing</span>
+				<h2 class="section-title">Notes from the build.</h2>
+			</div>
+			<a class="btn" href="/blog/">All posts</a>
+		</div>
+		<div class="posts">
+			{
+				posts.map((p, i) => (
+					<a class="post" href={`/blog/${p.id}/`} data-reveal style={`transition-delay:${i * 80}ms`}>
+						<time class="mono" datetime={p.data.pubDate.toISOString()}>
+							{fmt(p.data.pubDate)}
+						</time>
+						<h3>{p.data.title}</h3>
+						<p>{p.data.description}</p>
+						<span class="more mono">read →</span>
+					</a>
+				))
+			}
+		</div>
+	</section>
+
+	<!-- ABOUT -->
+	<section id="about" class="section wrap about">
+		<div data-reveal>
+			<span class="eyebrow">About</span>
+			<h2 class="section-title">I like systems I can see inside.</h2>
+		</div>
+		<div class="about-grid" data-reveal>
+			<div class="prose">
+				<p>
+					I’m {PERSON.fullName}, a backend engineer from {PERSON.location}. My day job is services, queues and
+					identity. This site is where I practise the other half: running things myself, end to end, from DNS and TLS
+					to dashboards and backups.
+				</p>
+				<p>
+					Everything here is built in the open on GitHub, and every mistake I made along the way ends up in the build
+					log.
+				</p>
+				<p class="links">
+					<a class="btn primary" href={LINKS.github} rel="me">GitHub</a>
+				</p>
+			</div>
+			<div class="toolbox">
+				<span class="k mono">toolbox</span>
+				<ul>{TOOLBOX.map((t) => <li class="chip">{t}</li>)}</ul>
+			</div>
+		</div>
+	</section>
+</Base>
+
+<script>
+	type Svc = { ok: boolean; ms?: number; version?: string; commit?: string };
+	type Status = {
+		updated_at: string;
+		host?: { uptime_s?: number; mem_used_pct?: number; load1?: number; containers?: number };
+		services?: Record<string, Svc>;
+	};
+
+	const $ = <T extends Element>(s: string, r: ParentNode = document) => r.querySelector<T>(s);
+
+	function ago(iso: string) {
+		const s = Math.max(0, Math.round((Date.now() - new Date(iso).getTime()) / 1000));
+		if (s < 60) return `${s}s ago`;
+		if (s < 3600) return `${Math.round(s / 60)}m ago`;
+		return `${Math.round(s / 3600)}h ago`;
+	}
+	function uptime(sec: number) {
+		const d = Math.floor(sec / 86400);
+		const h = Math.floor((sec % 86400) / 3600);
+		return d ? `${d}d ${h}h` : `${h}h ${Math.floor((sec % 3600) / 60)}m`;
+	}
+	function setHost(key: string, val: string) {
+		const el = $(`[data-host="${key}"]`);
+		if (el) el.textContent = val;
+	}
+
+	function render(st: Status | null) {
+		const summary = $<HTMLElement>('#live-summary');
+		const cards = document.querySelectorAll<HTMLElement>('[data-service]');
+		if (!st || !st.services) {
+			cards.forEach((c) => {
+				c.dataset.state = 'unknown';
+				const t = $('.status-text', c);
+				if (t) t.textContent = 'status unavailable';
+			});
+			if (summary) {
+				summary.dataset.state = 'unknown';
+				$('.txt', summary)!.textContent = 'live status unavailable right now';
+			}
+			return;
+		}
+		let up = 0;
+		cards.forEach((c) => {
+			const s = st.services![c.dataset.service!];
+			const ok = !!s?.ok;
+			if (ok) up++;
+			c.dataset.state = s ? (ok ? 'up' : 'down') : 'unknown';
+			const t = $('.status-text', c);
+			if (t) t.textContent = !s ? 'unknown' : ok ? `healthy · ${s.ms ?? '?'} ms` : 'down';
+		});
+		if (summary) {
+			summary.dataset.state = up === cards.length ? 'up' : 'down';
+			$('.txt', summary)!.textContent = `${up}/${cards.length} services healthy · checked ${ago(st.updated_at)}`;
+		}
+		const h = st.host ?? {};
+		if (h.uptime_s != null) setHost('uptime', uptime(h.uptime_s));
+		if (h.mem_used_pct != null) setHost('mem', `${h.mem_used_pct}% used`);
+		if (h.containers != null) setHost('containers', `${h.containers} running`);
+		if (h.load1 != null) setHost('load', h.load1.toFixed(2));
+		setHost('checked', ago(st.updated_at));
+	}
+
+	async function poll() {
+		try {
+			const r = await fetch('/status/status.json', { cache: 'no-store' });
+			render(r.ok ? await r.json() : null);
+		} catch {
+			render(null);
+		}
+	}
+	poll();
+	setInterval(poll, 30_000);
+</script>
+
+<style>
+	/* hero */
+	.hero {
+		display: grid;
+		grid-template-columns: 1.05fr 1fr;
+		align-items: center;
+		gap: clamp(2rem, 5vw, 4rem);
+		padding-block: clamp(56px, 9vw, 110px) 40px;
+	}
+	h1 {
+		font-size: clamp(2.6rem, 6.4vw, 4.8rem);
+		line-height: 1.02;
+		margin-top: 1rem;
+	}
+	.name {
+		background: linear-gradient(100deg, var(--keycloak), var(--workbench) 55%, var(--grafana));
+		-webkit-background-clip: text;
+		background-clip: text;
+		color: transparent;
+	}
+	.outline {
+		color: transparent;
+		-webkit-text-stroke: 1.4px color-mix(in srgb, var(--text) 70%, transparent);
+	}
+	.cta {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.7rem;
+		margin-top: 1.8rem;
+	}
+	.live {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.6rem;
+		margin-top: 1.6rem;
+		font-size: 0.82rem;
+		color: var(--text-muted);
+	}
+
+	.btn {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.5rem;
+		padding: 0.75rem 1.15rem;
+		border-radius: 12px;
+		border: 1px solid var(--line-strong);
+		text-decoration: none;
+		font-weight: 500;
+		font-size: 0.94rem;
+		transition:
+			transform 0.2s,
+			background 0.2s,
+			border-color 0.2s;
+	}
+	.btn:hover {
+		transform: translateY(-1px);
+		border-color: var(--text-faint);
+	}
+	.btn.primary {
+		background: var(--text);
+		color: var(--bg);
+		border-color: var(--text);
+	}
+
+	/* host strip */
+	.strip {
+		display: grid;
+		grid-template-columns: repeat(5, 1fr);
+		border: 1px solid var(--line);
+		border-radius: var(--radius);
+		background: color-mix(in srgb, var(--surface) 75%, transparent);
+		overflow: hidden;
+	}
+	.cell {
+		display: flex;
+		flex-direction: column;
+		gap: 0.15rem;
+		padding: 1rem 1.2rem;
+		border-right: 1px solid var(--line);
+	}
+	.cell:last-child {
+		border-right: 0;
+	}
+	.k {
+		font-size: 0.7rem;
+		text-transform: uppercase;
+		letter-spacing: 0.08em;
+		color: var(--text-faint);
+	}
+	.v {
+		font-family: var(--font-display);
+		font-weight: 500;
+		font-size: 1.15rem;
+	}
+
+	/* cards */
+	.cards {
+		display: grid;
+		grid-template-columns: repeat(3, 1fr);
+		gap: 1.2rem;
+		margin-top: 3rem;
+	}
+	.note {
+		margin-top: 1.2rem;
+		font-size: 0.78rem;
+		color: var(--text-faint);
+	}
+
+	/* writing */
+	.head-row {
+		display: flex;
+		align-items: end;
+		justify-content: space-between;
+		gap: 1rem;
+		flex-wrap: wrap;
+	}
+	.posts {
+		display: grid;
+		grid-template-columns: repeat(3, 1fr);
+		gap: 1.2rem;
+		margin-top: 2.4rem;
+	}
+	.post {
+		display: flex;
+		flex-direction: column;
+		gap: 0.6rem;
+		padding: 1.4rem;
+		border: 1px solid var(--line);
+		border-radius: var(--radius);
+		background: var(--surface);
+		text-decoration: none;
+		transition:
+			border-color 0.25s,
+			transform 0.25s;
+	}
+	.post:hover {
+		border-color: var(--line-strong);
+		transform: translateY(-3px);
+	}
+	.post time {
+		font-size: 0.75rem;
+		color: var(--text-faint);
+	}
+	.post h3 {
+		font-size: 1.25rem;
+	}
+	.post p {
+		margin: 0;
+		color: var(--text-muted);
+		font-size: 0.92rem;
+	}
+	.more {
+		margin-top: auto;
+		font-size: 0.8rem;
+		color: var(--accent);
+	}
+
+	/* about */
+	.about-grid {
+		display: grid;
+		grid-template-columns: 1.4fr 1fr;
+		gap: 2.5rem;
+		margin-top: 2rem;
+	}
+	.links {
+		margin-top: 1.6rem;
+	}
+	.toolbox ul {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.5rem;
+		list-style: none;
+		margin: 0.8rem 0 0;
+		padding: 0;
+	}
+	.toolbox .chip {
+		font-size: 0.84rem;
+		padding: 0.4em 0.85em;
+	}
+
+	@media (max-width: 960px) {
+		.hero {
+			grid-template-columns: 1fr;
+		}
+		.cards,
+		.posts {
+			grid-template-columns: 1fr;
+		}
+		.strip {
+			grid-template-columns: repeat(2, 1fr);
+		}
+		.cell {
+			border-bottom: 1px solid var(--line);
+		}
+		.cell:nth-child(2n) {
+			border-right: 0;
+		}
+		.about-grid {
+			grid-template-columns: 1fr;
+		}
+	}
+	@media (min-width: 640px) and (max-width: 960px) {
+		.cards {
+			grid-template-columns: repeat(2, 1fr);
+		}
+	}
+</style>

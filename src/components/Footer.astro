@@ -1,0 +1,50 @@
+---
+import { LINKS, PERSON } from '../consts';
+
+const sha = import.meta.env.PUBLIC_BUILD_SHA ?? 'dev';
+const year = new Date().getFullYear();
+---
+
+<footer class="footer">
+	<div class="wrap foot">
+		<p>
+			© {year} {PERSON.fullName}. Built with Astro, shipped by GitHub Actions to a 2&nbsp;vCPU VPS behind
+			Cloudflare.
+		</p>
+		<p class="meta mono">
+			<span>build {sha.slice(0, 7)}</span>
+			<a href={LINKS.github} rel="me">github</a>
+			<a href="/rss.xml">rss</a>
+		</p>
+	</div>
+</footer>
+
+<style>
+	.footer {
+		border-top: 1px solid var(--line);
+		margin-top: 40px;
+	}
+	.foot {
+		display: flex;
+		flex-wrap: wrap;
+		justify-content: space-between;
+		gap: 0.6rem 2rem;
+		padding-block: 28px;
+		font-size: 0.85rem;
+		color: var(--text-faint);
+	}
+	.foot p {
+		margin: 0;
+	}
+	.meta {
+		display: flex;
+		gap: 1rem;
+	}
+	.meta a {
+		color: var(--text-muted);
+		text-decoration: none;
+	}
+	.meta a:hover {
+		color: var(--text);
+	}
+</style>

@@ -1,0 +1,67 @@
+---
+import BaseHead from '../components/BaseHead.astro';
+import Footer from '../components/Footer.astro';
+import Nav from '../components/Nav.astro';
+
+interface Props {
+	title: string;
+	description: string;
+}
+
+const { title, description } = Astro.props;
+---
+
+<!doctype html>
+<html lang="en">
+	<head>
+		<BaseHead title={title} description={description} />
+	</head>
+	<body>
+		<a class="skip" href="#main">Skip to content</a>
+		<Nav />
+		<main id="main">
+			<slot />
+		</main>
+		<Footer />
+
+		<script>
+			// Fade sections in as they scroll into view. Anything already on screen
+			// shows at once, and everything shows after 1.5 s no matter what, so
+			// content never stays hidden (slow devices, crawlers, print).
+			const els = [...document.querySelectorAll('[data-reveal]')];
+			const show = (el: Element) => el.classList.add('in');
+			const io = new IntersectionObserver(
+				(entries) => {
+					for (const e of entries) {
+						if (e.isIntersecting) {
+							show(e.target);
+							io.unobserve(e.target);
+						}
+					}
+				},
+				{ rootMargin: '0px 0px -10% 0px' },
+			);
+			for (const el of els) {
+				if (el.getBoundingClientRect().top < innerHeight) show(el);
+				else io.observe(el);
+			}
+			setTimeout(() => els.forEach(show), 1500);
+		</script>
+
+		<style>
+			.skip {
+				position: absolute;
+				left: -999px;
+				top: 8px;
+				padding: 8px 12px;
+				background: var(--surface);
+				border: 1px solid var(--line);
+				border-radius: 8px;
+				z-index: 100;
+			}
+			.skip:focus {
+				left: 8px;
+			}
+		</style>
+	</body>
+</html>

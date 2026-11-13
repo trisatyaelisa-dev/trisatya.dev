@@ -1,0 +1,41 @@
+---
+import Base from '../layouts/Base.astro';
+---
+
+<Base title="Not found" description="This page does not exist.">
+	<section class="wrap nf">
+		<p class="code mono">404</p>
+		<h1>Nothing is listening on this path.</h1>
+		<pre class="mono">$ curl -I {Astro.url.pathname}
+HTTP/2 404</pre>
+		<a class="home" href="/">← back home</a>
+	</section>
+</Base>
+
+<style>
+	.nf {
+		max-width: 720px;
+		padding-block: clamp(80px, 14vw, 160px);
+	}
+	.code {
+		color: var(--accent);
+		font-size: 0.9rem;
+		margin: 0;
+	}
+	h1 {
+		font-size: clamp(2rem, 5vw, 3rem);
+		margin-top: 0.8rem;
+	}
+	pre {
+		margin: 1.6rem 0;
+		padding: 1rem 1.2rem;
+		border: 1px solid var(--line);
+		border-radius: var(--radius-sm);
+		background: var(--surface);
+		color: var(--text-muted);
+		font-size: 0.86rem;
+	}
+	.home {
+		color: var(--text-muted);
+	}
+</style>

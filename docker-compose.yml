@@ -1,0 +1,11 @@
+services:
+  web:
+    image: ghcr.io/trisatyaelisa-dev/trisatya.dev:${IMAGE_TAG:-latest}
+    restart: unless-stopped
+    ports:
+      # localhost only; the host's Nginx (nginx/trisatya.dev.conf) is public
+      - "127.0.0.1:8081:80"
+    volumes:
+      # status.json, written every minute by scripts/status.sh (cron)
+      - ./status:/usr/share/nginx/html/status:ro
+    mem_limit: 64m

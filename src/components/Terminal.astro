@@ -1,0 +1,173 @@
+---
+// A replay of a real session on the VPS, revealed line by line with CSS.
+type Line = { kind: 'cmd' | 'out' | 'ok' | 'dim'; text: string };
+
+const lines: Line[] = [
+	{ kind: 'cmd', text: 'ssh vps' },
+	{ kind: 'dim', text: 'Welcome to Ubuntu 24.04 LTS · 2 vCPU · 3.6 GiB' },
+	{ kind: 'cmd', text: 'docker compose ls' },
+	{ kind: 'dim', text: 'NAME              STATUS' },
+	{ kind: 'out', text: 'grafana-stack     running(4)' },
+	{ kind: 'out', text: 'keycloak-stack    running(2)' },
+	{ kind: 'out', text: 'ex-mcp            running(1)' },
+	{ kind: 'out', text: 'trisatya.dev      running(1)' },
+	{ kind: 'cmd', text: 'curl -s :9100/health/ready | jq .status' },
+	{ kind: 'ok', text: '"UP"' },
+];
+
+let t = 0.3;
+const timed = lines.map((l) => {
+	const delay = t;
+	const dur = l.kind === 'cmd' ? Math.max(0.5, l.text.length * 0.035) : 0;
+	t += l.kind === 'cmd' ? dur + 0.35 : 0.12;
+	return { ...l, delay, dur, chars: l.text.length };
+});
+const end = t + 0.2;
+---
+
+<figure class="term" aria-label="Terminal session on the VPS">
+	<div class="bar">
+		<span class="lights" aria-hidden="true"><i></i><i></i><i></i></span>
+		<span class="title mono">trisatya@vps: ~</span>
+	</div>
+	<div class="screen mono" aria-hidden="true">
+		{
+			timed.map((l) =>
+				l.kind === 'cmd' ? (
+					<div class="ln cmd" style={`--d:${l.delay}s`}>
+						<b class="ps">$&nbsp;</b>
+						<span
+							class="typed"
+							style={`animation:type ${l.dur}s steps(${l.chars}) ${l.delay}s forwards`}
+						>
+							{l.text}
+						</span>
+					</div>
+				) : (
+					<div class={`ln ${l.kind}`} style={`--d:${l.delay}s`}>
+						{l.text}
+					</div>
+				),
+			)
+		}
+		<div class="ln cur" style={`--d:${end}s`}><b class="ps">$&nbsp;</b><i class="caret"></i></div>
+	</div>
+	<figcaption class="sr">
+		ssh vps, then docker compose ls shows grafana-stack, keycloak-stack, ex-mcp and trisatya.dev running, and
+		Keycloak's health check returns UP.
+	</figcaption>
+</figure>
+
+<style>
+	.term {
+		margin: 0;
+		border: 1px solid var(--line-strong);
+		border-radius: var(--radius);
+		background: color-mix(in srgb, #05070a 92%, transparent);
+		box-shadow: var(--shadow), 0 0 0 1px rgb(0 0 0 / 0.2);
+		overflow: hidden;
+		color: #d7dde8;
+	}
+	.bar {
+		display: flex;
+		align-items: center;
+		gap: 0.8rem;
+		padding: 0.7rem 0.9rem;
+		border-bottom: 1px solid rgb(255 255 255 / 0.07);
+		background: rgb(255 255 255 / 0.02);
+	}
+	.lights {
+		display: inline-flex;
+		gap: 6px;
+	}
+	.lights i {
+		width: 10px;
+		height: 10px;
+		border-radius: 50%;
+		background: #ff5f57;
+	}
+	.lights i:nth-child(2) {
+		background: #febc2e;
+	}
+	.lights i:nth-child(3) {
+		background: #28c840;
+	}
+	.title {
+		font-size: 0.78rem;
+		color: #8892a3;
+	}
+	.screen {
+		margin: 0;
+		padding: 1rem 1.1rem 1.2rem;
+		font-size: clamp(0.72rem, 1.6vw, 0.84rem);
+		line-height: 1.75;
+		min-height: 20.5em;
+		overflow-x: auto;
+	}
+	.ln {
+		display: block;
+		white-space: pre;
+		opacity: 0;
+		animation: show 0.01s linear forwards;
+		animation-delay: var(--d);
+	}
+	.ps {
+		color: var(--accent);
+		font-weight: 500;
+	}
+	.typed {
+		display: inline-block;
+		overflow: hidden;
+		vertical-align: bottom;
+		white-space: pre;
+		clip-path: inset(0 100% 0 0);
+		/* animation is set inline: steps() needs a literal step count */
+	}
+	.dim {
+		color: #6f7a8c;
+	}
+	.out {
+		color: #c9d1de;
+	}
+	.ok {
+		color: #4ade80;
+	}
+	.caret {
+		display: inline-block;
+		width: 0.6em;
+		height: 1.1em;
+		vertical-align: -0.2em;
+		background: var(--accent);
+		animation: blink 1s steps(1) infinite;
+	}
+	@keyframes show {
+		to {
+			opacity: 1;
+		}
+	}
+	@keyframes type {
+		to {
+			clip-path: inset(0 0 0 0);
+		}
+	}
+	@keyframes blink {
+		50% {
+			opacity: 0;
+		}
+	}
+	.sr {
+		position: absolute;
+		width: 1px;
+		height: 1px;
+		overflow: hidden;
+		clip: rect(0 0 0 0);
+	}
+	@media (prefers-reduced-motion: reduce) {
+		.ln {
+			opacity: 1;
+		}
+		.typed {
+			clip-path: none;
+		}
+	}
+</style>

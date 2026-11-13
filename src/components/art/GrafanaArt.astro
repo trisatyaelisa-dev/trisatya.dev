@@ -1,0 +1,126 @@
+---
+// Stylised dashboard: two stat tiles, a live line chart and a bar row.
+---
+
+<svg class="art" viewBox="0 0 360 210" role="img" aria-label="Illustration of a Grafana dashboard">
+	<defs>
+		<linearGradient id="g-area" x1="0" x2="0" y1="0" y2="1">
+			<stop offset="0" stop-color="var(--grafana)" stop-opacity=".45"></stop>
+			<stop offset="1" stop-color="var(--grafana)" stop-opacity="0"></stop>
+		</linearGradient>
+	</defs>
+
+	<!-- stat tiles -->
+	<g class="tile">
+		<rect x="14" y="14" width="98" height="56" rx="10"></rect>
+		<text x="26" y="34" class="lbl">metrics kept</text>
+		<text x="26" y="58" class="big">15<tspan class="unit">d</tspan></text>
+	</g>
+	<g class="tile">
+		<rect x="122" y="14" width="98" height="56" rx="10"></rect>
+		<text x="134" y="34" class="lbl">logs kept</text>
+		<text x="134" y="58" class="big">7<tspan class="unit">d</tspan></text>
+	</g>
+	<g class="tile">
+		<rect x="230" y="14" width="116" height="56" rx="10"></rect>
+		<text x="242" y="34" class="lbl">targets up</text>
+		<circle cx="250" cy="53" r="5" class="up"></circle>
+		<circle cx="266" cy="53" r="5" class="up"></circle>
+		<text x="280" y="58" class="big sm">2/2</text>
+	</g>
+
+	<!-- chart panel -->
+	<rect x="14" y="80" width="332" height="116" rx="12" class="panel"></rect>
+	<g class="grid">
+		<line x1="28" x2="332" y1="112" y2="112"></line>
+		<line x1="28" x2="332" y1="140" y2="140"></line>
+		<line x1="28" x2="332" y1="168" y2="168"></line>
+	</g>
+	<path
+		class="area"
+		d="M28 160 C 52 150, 64 128, 88 132 S 128 158, 150 140 S 190 104, 214 116 S 254 150, 278 128 S 316 108, 332 112 L 332 184 L 28 184 Z"
+	></path>
+	<path
+		class="line"
+		d="M28 160 C 52 150, 64 128, 88 132 S 128 158, 150 140 S 190 104, 214 116 S 254 150, 278 128 S 316 108, 332 112"
+	></path>
+	<path class="line2" d="M28 172 C 70 168, 96 160, 130 164 S 200 150, 240 156 S 300 146, 332 150"></path>
+	<circle class="head" cx="332" cy="112" r="4"></circle>
+	<text x="28" y="100" class="lbl">http_server_requests_seconds</text>
+</svg>
+
+<style>
+	.art {
+		width: 100%;
+		height: auto;
+		font-family: var(--font-mono), monospace;
+	}
+	.tile rect,
+	.panel {
+		fill: color-mix(in srgb, var(--surface-2) 80%, transparent);
+		stroke: var(--line);
+	}
+	.lbl {
+		fill: var(--text-faint);
+		font-size: 9px;
+	}
+	.big {
+		fill: var(--text);
+		font-size: 19px;
+		font-family: var(--font-display), sans-serif;
+		font-weight: 700;
+	}
+	.big.sm {
+		font-size: 15px;
+	}
+	.unit {
+		font-size: 11px;
+		fill: var(--text-muted);
+	}
+	.up {
+		fill: var(--ok);
+	}
+	.grid line {
+		stroke: var(--line);
+		stroke-dasharray: 3 4;
+	}
+	.area {
+		fill: url(#g-area);
+	}
+	.line {
+		fill: none;
+		stroke: var(--grafana);
+		stroke-width: 2.2;
+		stroke-linecap: round;
+		stroke-dasharray: 520;
+		stroke-dashoffset: 520;
+		animation: draw 2.6s 0.2s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+	}
+	.line2 {
+		fill: none;
+		stroke: color-mix(in srgb, var(--keycloak) 80%, transparent);
+		stroke-width: 1.6;
+		stroke-dasharray: 2 5;
+	}
+	.head {
+		fill: var(--grafana);
+		animation: ping 2s 2.6s ease-out infinite;
+		transform-origin: 332px 112px;
+		opacity: 0;
+	}
+	@keyframes draw {
+		to {
+			stroke-dashoffset: 0;
+		}
+	}
+	@keyframes ping {
+		0% {
+			opacity: 1;
+			transform: scale(1);
+		}
+		100% {
+			opacity: 0;
+			transform: scale(2.6);
+		}
+	}
+</style>

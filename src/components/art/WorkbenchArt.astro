@@ -1,0 +1,116 @@
+---
+// One MCP endpoint in the middle, integrations around it, packets travelling the spokes.
+const nodes = [
+	{ x: 52, y: 44, t: 'GitHub' },
+	{ x: 52, y: 166, t: 'Jira' },
+	{ x: 308, y: 44, t: 'Slack' },
+	{ x: 308, y: 166, t: 'Drive' },
+	{ x: 180, y: 22, t: 'Agent' },
+	{ x: 180, y: 190, t: 'Vault' },
+];
+const cx = 180;
+const cy = 106;
+---
+
+<svg class="art" viewBox="0 0 360 210" role="img" aria-label="Illustration of an MCP hub connecting tools">
+	<defs>
+		<radialGradient id="w-glow">
+			<stop offset="0" stop-color="var(--workbench)" stop-opacity=".55"></stop>
+			<stop offset="1" stop-color="var(--workbench)" stop-opacity="0"></stop>
+		</radialGradient>
+	</defs>
+
+	<circle cx={cx} cy={cy} r="78" fill="url(#w-glow)" class="glow"></circle>
+
+	{
+		nodes.map((n, i) => (
+			<g>
+				<path id={`w-spoke-${i}`} class="spoke" d={`M${n.x} ${n.y} L${cx} ${cy}`} />
+				<circle r="3" class="packet">
+					<animateMotion
+						dur={`${2.2 + i * 0.35}s`}
+						repeatCount="indefinite"
+						begin={`${i * 0.4}s`}
+						keyPoints={i === 4 ? '1;0' : '0;1'}
+						keyTimes="0;1"
+						calcMode="linear"
+					>
+						<mpath href={`#w-spoke-${i}`} />
+					</animateMotion>
+				</circle>
+			</g>
+		))
+	}
+
+	{
+		nodes.map((n) => (
+			<g class={`node ${n.t === 'Agent' ? 'agent' : ''}`}>
+				<rect x={n.x - 30} y={n.y - 13} width="60" height="26" rx="8" />
+				<text x={n.x} y={n.y + 4} text-anchor="middle">
+					{n.t}
+				</text>
+			</g>
+		))
+	}
+
+	<g class="hub">
+		<rect x={cx - 42} y={cy - 26} width="84" height="52" rx="14"></rect>
+		<text x={cx} y={cy - 3} text-anchor="middle" class="h1">/mcp</text>
+		<text x={cx} y={cy + 13} text-anchor="middle" class="h2">9 meta-tools</text>
+	</g>
+</svg>
+
+<style>
+	.art {
+		width: 100%;
+		height: auto;
+		font-family: var(--font-mono), monospace;
+	}
+	.glow {
+		animation: breathe 4s ease-in-out infinite;
+		transform-origin: 180px 106px;
+	}
+	.spoke {
+		stroke: color-mix(in srgb, var(--workbench) 45%, var(--line));
+		stroke-width: 1.2;
+		stroke-dasharray: 3 4;
+		fill: none;
+	}
+	.packet {
+		fill: var(--workbench);
+	}
+	.node rect {
+		fill: color-mix(in srgb, var(--surface-2) 90%, transparent);
+		stroke: var(--line-strong);
+	}
+	.node text {
+		fill: var(--text-muted);
+		font-size: 10px;
+	}
+	.node.agent rect {
+		stroke: var(--accent);
+	}
+	.node.agent text {
+		fill: var(--accent);
+	}
+	.hub rect {
+		fill: color-mix(in srgb, var(--workbench) 18%, var(--surface));
+		stroke: var(--workbench);
+		stroke-width: 1.4;
+	}
+	.h1 {
+		fill: var(--text);
+		font-size: 14px;
+		font-weight: 500;
+	}
+	.h2 {
+		fill: var(--text-muted);
+		font-size: 9px;
+	}
+	@keyframes breathe {
+		50% {
+			transform: scale(1.12);
+			opacity: 0.7;
+		}
+	}
+</style>

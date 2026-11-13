@@ -1,0 +1,138 @@
+---
+import type { SERVICES } from '../consts';
+import GrafanaArt from './art/GrafanaArt.astro';
+import KeycloakArt from './art/KeycloakArt.astro';
+import WorkbenchArt from './art/WorkbenchArt.astro';
+
+type Props = (typeof SERVICES)[number] & { index: number };
+const { key, name, host, url, kicker, blurb, tags, index } = Astro.props;
+---
+
+<article class={`card ${key}`} data-service={key} data-state="unknown" data-reveal style={`transition-delay:${index * 90}ms`}>
+	<div class="art-wrap">
+		{key === 'grafana' && <GrafanaArt />}
+		{key === 'workbench' && <WorkbenchArt />}
+		{key === 'keycloak' && <KeycloakArt />}
+	</div>
+	<div class="body">
+		<div class="top">
+			<span class="kicker mono">{kicker}</span>
+			<span class="status chip mono" aria-live="polite">
+				<span class="dot"></span><span class="status-text">checking…</span>
+			</span>
+		</div>
+		<h3>{name}</h3>
+		<p>{blurb}</p>
+		<ul class="tags">{tags.map((t) => <li class="chip">{t}</li>)}</ul>
+		<a class="open" href={url} target="_blank" rel="noopener">
+			<span class="mono">{host}</span>
+			<svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true"><path d="M5 11 11 5M6 5h5v5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" /></svg>
+		</a>
+	</div>
+</article>
+
+<style>
+	.card {
+		--svc: var(--accent);
+		position: relative;
+		display: flex;
+		flex-direction: column;
+		border: 1px solid var(--line);
+		border-radius: var(--radius);
+		background: linear-gradient(180deg, color-mix(in srgb, var(--svc) 7%, var(--surface)), var(--surface) 55%);
+		box-shadow: var(--shadow);
+		overflow: hidden;
+		transition:
+			border-color 0.3s,
+			transform 0.3s;
+	}
+	.card.grafana {
+		--svc: var(--grafana);
+	}
+	.card.workbench {
+		--svc: var(--workbench);
+	}
+	.card.keycloak {
+		--svc: var(--keycloak);
+	}
+	.card:hover {
+		border-color: color-mix(in srgb, var(--svc) 45%, var(--line));
+		transform: translateY(-3px);
+	}
+	.card::before {
+		content: '';
+		position: absolute;
+		inset: 0 0 auto;
+		height: 1px;
+		background: linear-gradient(90deg, transparent, var(--svc), transparent);
+		opacity: 0.7;
+	}
+	.art-wrap {
+		padding: 18px 18px 6px;
+		border-bottom: 1px solid var(--line);
+		background:
+			radial-gradient(70% 90% at 50% 0%, color-mix(in srgb, var(--svc) 12%, transparent), transparent 70%);
+	}
+	.body {
+		display: flex;
+		flex-direction: column;
+		gap: 0.7rem;
+		padding: 20px 22px 22px;
+		flex: 1;
+	}
+	.top {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		gap: 0.6rem;
+	}
+	.kicker {
+		font-size: 0.74rem;
+		text-transform: uppercase;
+		letter-spacing: 0.08em;
+		color: var(--svc);
+	}
+	.status {
+		font-size: 0.72rem;
+	}
+	h3 {
+		font-size: 1.5rem;
+	}
+	p {
+		margin: 0;
+		color: var(--text-muted);
+		font-size: 0.95rem;
+	}
+	.tags {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.4rem;
+		list-style: none;
+		padding: 0;
+		margin: 0.2rem 0 0;
+	}
+	.open {
+		margin-top: auto;
+		display: inline-flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 0.6rem;
+		padding: 0.7rem 0.9rem;
+		border: 1px solid var(--line);
+		border-radius: var(--radius-sm);
+		text-decoration: none;
+		font-size: 0.86rem;
+		color: var(--text);
+		background: color-mix(in srgb, var(--bg) 40%, transparent);
+		transition:
+			border-color 0.2s,
+			background 0.2s;
+	}
+	.open:hover {
+		border-color: var(--svc);
+		background: color-mix(in srgb, var(--svc) 10%, transparent);
+	}
+	.open svg {
+		color: var(--svc);
+	}
+</style>

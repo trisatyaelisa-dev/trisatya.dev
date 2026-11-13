@@ -1,0 +1,91 @@
+---
+const path = Astro.url.pathname;
+const items = [
+	{ href: '/#stack', label: 'Stack' },
+	{ href: '/#pipeline', label: 'Pipeline' },
+	{ href: '/blog/', label: 'Writing' },
+	{ href: '/#about', label: 'About' },
+];
+---
+
+<header class="nav">
+	<div class="wrap nav-inner">
+		<a href="/" class="brand" aria-label="Trisatya, home">
+			<svg viewBox="0 0 32 32" width="28" height="28" aria-hidden="true">
+				<rect x="1" y="1" width="30" height="30" rx="9" fill="none" stroke="currentColor" stroke-opacity=".25" />
+				<path d="M10 11h12M16 11v11" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" />
+				<circle cx="23" cy="22" r="2.2" fill="var(--accent)" />
+			</svg>
+			<span>trisatya<span class="tld">.dev</span></span>
+		</a>
+		<nav aria-label="Main">
+			<ul>
+				{
+					items.map((i) => (
+						<li>
+							<a href={i.href} aria-current={i.href === '/blog/' && path.startsWith('/blog') ? 'page' : undefined}>
+								{i.label}
+							</a>
+						</li>
+					))
+				}
+			</ul>
+		</nav>
+	</div>
+</header>
+
+<style>
+	.nav {
+		position: sticky;
+		top: 0;
+		z-index: 50;
+		backdrop-filter: saturate(160%) blur(14px);
+		background: color-mix(in srgb, var(--bg) 72%, transparent);
+		border-bottom: 1px solid var(--line);
+	}
+	.nav-inner {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		height: 64px;
+		gap: 1rem;
+	}
+	.brand {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.6rem;
+		text-decoration: none;
+		font-family: var(--font-display);
+		font-weight: 700;
+		letter-spacing: -0.01em;
+	}
+	.tld {
+		color: var(--text-faint);
+		font-weight: 500;
+	}
+	ul {
+		display: flex;
+		gap: clamp(0.6rem, 2.5vw, 1.8rem);
+		list-style: none;
+		margin: 0;
+		padding: 0;
+	}
+	nav a {
+		text-decoration: none;
+		font-size: 0.92rem;
+		color: var(--text-muted);
+		transition: color 0.2s;
+	}
+	nav a:hover,
+	nav a[aria-current='page'] {
+		color: var(--text);
+	}
+	@media (max-width: 520px) {
+		.brand span {
+			display: none;
+		}
+		nav a {
+			font-size: 0.86rem;
+		}
+	}
+</style>
